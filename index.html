@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCC Maintenance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <div class="bg-blue-700 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold tracking-tight">JCC Maintenance Portal</h1>
+            <p class="text-blue-100 text-sm">Upload Maintenance Paperwork</p>
+        </div>
+
+        <form id="uploadForm" class="p-6 space-y-5">
+            
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Asset Type</label>
+                <div class="flex gap-2">
+                    <button type="button" id="btnVehicle" onclick="toggleAsset('vehicle')" class="flex-1 py-2 rounded-lg bg-blue-600 text-white font-bold shadow-sm transition-all">Vehicle</button>
+                    <button type="button" id="btnTrailer" onclick="toggleAsset('trailer')" class="flex-1 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold border border-slate-200 hover:bg-slate-200 transition-all">Trailer</button>
+                </div>
+            </div>
+
+            <div id="vehicleWrapper">
+                <label class="block text-sm font-bold text-slate-700 mb-1">Select Vehicle</label>
+                <select id="vehicleSelect" class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">-- Choose Truck --</option>
+                    <option value="BX15 JSU">BX15 JSU</option>
+                    <option value="DK69 ZHM">DK69 ZHM</option>
+                    <option value="FD65 VZA">FD65 VZA</option>
+                    <option value="FJ17 OPT">FJ17 OPT</option>
+                    <option value="FJ69 WMC">FJ69 WMC</option>
+                    <option value="FJ69 WML">FJ69 WML</option>
+                    <option value="FN21 HLZ">FN21 HLZ</option>
+                    <option value="FR72 FTS">FR72 FTS</option>
+                    <option value="FS72 FTS">FS72 FTS</option>
+                    <option value="FT72 FTS">FT72 FTS</option>
+                    <option value="HS19 YNH">HS19 YNH</option>
+                    <option value="KU70 XNR">KU70 XNR</option>
+                    <option value="KU70 XNS">KU70 XNS</option>
+                    <option value="KU70 XNT">KU70 XNT</option>
+                    <option value="KU70 XNV">KU70 XNV</option>
+                    <option value="KU70 XNW">KU70 XNW</option>
+                    <option value="KU70 XNX">KU70 XNX</option>
+                </select>
+            </div>
+
+            <div id="trailerWrapper" class="hidden">
+                <label class="block text-sm font-bold text-slate-700 mb-1">Select Trailer</label>
+                <select id="trailerSelect" class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">-- Choose Trailer --</option>
+                    <option value="FTSTR01">FTSTR01</option>
+                    <option value="FTSTR02">FTSTR02</option>
+                    <option value="FTSTR03">FTSTR03</option>
+                    <option value="FTSTR04">FTSTR04</option>
+                    <option value="FTSTR05">FTSTR05</option>
+                    <option value="FTSTR09">FTSTR09</option>
+                    <option value="FTSTR11">FTSTR11</option>
+                    <option value="FTSTR12">FTSTR12</option>
+                    <option value="FTSTR17">FTSTR17</option>
+                    <option value="FTSTR21">FTSTR21</option>
+                    <option value="FTSTR22">FTSTR22</option>
+                    <option value="FTSTR23">FTSTR23</option>
+                    <option value="FTSTR24">FTSTR24</option>
+                    <option value="FTSTR25">FTSTR25</option>
+                    <option value="FTSTR26">FTSTR26</option>
+                    <option value="FTSTR27">FTSTR27</option>
+                    <option value="FTSTR28">FTSTR28</option>
+                    <option value="FTSTR30">FTSTR30</option>
+                    <option value="FTSTR31">FTSTR31</option>
+                    <option value="FTSTR41">FTSTR41</option>
+                    <option value="FTSTR42">FTSTR42</option>
+                    <option value="FTSTR44">FTSTR44</option>
+                    <option value="FTSTR45">FTSTR45</option>
+                    <option value="FTSTR46">FTSTR46</option>
+                    <option value="FTSTR60">FTSTR60</option>
+                    <option value="FTSTR61">FTSTR61</option>
+                    <option value="FTSTR62">FTSTR62</option>
+                    <option value="FTSTR63">FTSTR63</option>
+                    <option value="FTSTR64">FTSTR64</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Document Type</label>
+                <select id="docType" class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option>Safety Inspection</option>
+                    <option>MOT Certificate</option>
+                    <option>Repair Invoice</option>
+                    <option>Defect Sheet</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Select Documents (Multiple Allowed)</label>
+                <input type="file" id="fileInput" accept="application/pdf,image/*" multiple required
+                    class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor:pointer">
+                <p class="text-[10px] text-slate-400 mt-1 italic">* You can select more than one file at a time.</p>
+            </div>
+
+            <button type="submit" id="submitBtn"
+                class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-all active:scale-95">
+                Confirm & Upload All Records
+            </button>
+
+            <div id="statusMessage" class="hidden p-3 rounded-lg text-sm text-center font-medium"></div>
+        </form>
+
+        <div class="bg-slate-50 p-4 border-t border-slate-100 text-center">
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">DVSA Audit Compliant System</p>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mbudwnwxucluwgbkgbfx.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1idWR3bnd4dWNsdXdnYmtnYmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDQwMjYsImV4cCI6MjA5MDc4MDAyNn0.xFv-FiQ894vdfJuQYWQyF4WzQXmlnmnKvz_c8nuzl5Q';
+
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let activeType = 'vehicle';
+
+        function toggleAsset(type) {
+            activeType = type;
+            const vWrap = document.getElementById('vehicleWrapper');
+            const tWrap = document.getElementById('trailerWrapper');
+            const vBtn = document.getElementById('btnVehicle');
+            const tBtn = document.getElementById('btnTrailer');
+
+            if (type === 'vehicle') {
+                vWrap.classList.remove('hidden');
+                tWrap.classList.add('hidden');
+                vBtn.className = "flex-1 py-2 rounded-lg bg-blue-600 text-white font-bold shadow-sm transition-all";
+                tBtn.className = "flex-1 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold border border-slate-200 hover:bg-slate-200 transition-all";
+            } else {
+                tWrap.classList.remove('hidden');
+                vWrap.classList.add('hidden');
+                tBtn.className = "flex-1 py-2 rounded-lg bg-blue-600 text-white font-bold shadow-sm transition-all";
+                vBtn.className = "flex-1 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold border border-slate-200 hover:bg-slate-200 transition-all";
+            }
+        }
+
+        const form = document.getElementById('uploadForm');
+        const btn = document.getElementById('submitBtn');
+        const status = document.getElementById('statusMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const files = document.getElementById('fileInput').files;
+            const reg = activeType === 'vehicle' 
+                ? document.getElementById('vehicleSelect').value 
+                : document.getElementById('trailerSelect').value;
+            const type = document.getElementById('docType').value;
+
+            if (!reg) {
+                alert("Please select a registration number.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = `Uploading ${files.length} file(s)...`;
+            btn.classList.replace('bg-blue-600', 'bg-slate-400');
+            status.classList.add('hidden');
+
+            try {
+                // Loop through each selected file
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileExt = file.name.split('.').pop();
+                    // Ensure unique filename even if uploaded in same batch
+                    const fileName = `${reg}_${Date.now()}_${i}.${fileExt}`;
+                    const filePath = `uploads/${fileName}`;
+
+                    // 1. Upload to Storage
+                    const { error: uploadError } = await _supabase.storage
+                        .from('maintenance_docs')
+                        .upload(filePath, file);
+
+                    if (uploadError) throw uploadError;
+
+                    // 2. Insert into Database
+                    const { error: dbError } = await _supabase
+                        .from('maintenance_records')
+                        .insert([{
+                            vehicle_reg: reg,
+                            document_type: type,
+                            file_path: filePath
+                        }]);
+
+                    if (dbError) throw dbError;
+                }
+
+                // Success UI
+                status.innerText = `✓ ${files.length} Document(s) Uploaded Successfully!`;
+                status.className = "p-3 rounded-lg text-sm text-center bg-green-100 text-green-700 block";
+                form.reset();
+                toggleAsset('vehicle'); 
+
+            } catch (err) {
+                console.error(err);
+                status.innerText = "Error during upload: " + err.message;
+                status.className = "p-3 rounded-lg text-sm text-center bg-red-100 text-red-700 block";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Confirm & Upload All Records';
+                btn.classList.replace('bg-slate-400', 'bg-blue-600');
+            }
+        });
+    </script>
+</body>
+</html>
