@@ -7,28 +7,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-        <div class="bg-red-600 p-6 text-white text-center">
-            <h1 class="text-2xl font-bold tracking-tight">Frost Connect</h1>
-            <p class="text-red-100 text-sm">Upload Maintenance Paperwork</p>
+    <div id="mainCard" class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-300">
+        <div class="bg-red-700 p-6 text-white text-center border-b-4 border-red-800">
+            <h1 class="text-2xl font-black tracking-tighter uppercase">Frost Connect</h1>
+            <p class="text-red-100 text-[10px] uppercase font-bold tracking-[0.2em] opacity-80">Fleet Maintenance Management</p>
         </div>
 
         <form id="uploadForm" class="p-6 space-y-5">
-            
             <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1">Asset Type</label>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Asset Classification</label>
                 <div class="flex gap-2">
-                    <button type="button" id="btnVehicle" onclick="toggleAsset('vehicle')" class="flex-1 py-2 rounded-lg bg-red-600 text-white font-bold shadow-sm transition-all">Vehicle</button>
-                    <button type="button" id="btnTrailer" onclick="toggleAsset('trailer')" class="flex-1 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold border border-slate-200 hover:bg-slate-200 transition-all">Trailer</button>
+                    <button type="button" id="btnVehicle" onclick="toggleAsset('vehicle')" class="flex-1 py-3 rounded-lg bg-red-700 text-white font-bold shadow-md transition-all text-sm uppercase">Vehicle</button>
+                    <button type="button" id="btnTrailer" onclick="toggleAsset('trailer')" class="flex-1 py-3 rounded-lg bg-slate-200 text-slate-600 font-bold border border-slate-300 hover:bg-slate-300 transition-all text-sm uppercase">Trailer</button>
                 </div>
+                
+                <button type="button" onclick="openDefectWindow('DEFECTS')" class="w-full mt-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shadow-sm">
+                    View Fleet Records
+                </button>
             </div>
 
             <div id="vehicleWrapper">
-                <label class="block text-sm font-bold text-slate-700 mb-1">Select Vehicle</label>
-                <select id="vehicleSelect" class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
-                    <option value="">-- Choose Truck --</option>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Select Unit</label>
+                <select id="vehicleSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 outline-none text-sm font-medium">
+                    <option value="">-- Select Vehicle Registration --</option>
                     <option value="BX15 JSU">BX15 JSU</option>
                     <option value="DK69 ZHM">DK69 ZHM</option>
                     <option value="FD65 VZA">FD65 VZA</option>
@@ -50,9 +53,9 @@
             </div>
 
             <div id="trailerWrapper" class="hidden">
-                <label class="block text-sm font-bold text-slate-700 mb-1">Select Trailer</label>
-                <select id="trailerSelect" class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
-                    <option value="">-- Choose Trailer --</option>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Select Asset</label>
+                <select id="trailerSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 outline-none text-sm font-medium">
+                    <option value="">-- Select Trailer Number --</option>
                     <option value="FTSTR01">FTSTR01</option>
                     <option value="FTSTR02">FTSTR02</option>
                     <option value="FTSTR03">FTSTR03</option>
@@ -86,8 +89,8 @@
             </div>
 
             <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1">Document Type</label>
-                <select id="docType" class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Entry Type</label>
+                <select id="docType" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 outline-none text-sm font-medium">
                     <option>Safety Inspection</option>
                     <option>MOT Certificate</option>
                     <option>Repair Invoice</option>
@@ -96,28 +99,63 @@
             </div>
 
             <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1">Select Documents (Multiple Allowed)</label>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Source Files</label>
                 <input type="file" id="fileInput" accept="application/pdf,image/*" multiple required
-                    class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor:pointer">
+                    class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-slate-900 file:text-white hover:file:bg-slate-700 cursor:pointer border border-dashed border-slate-300 p-2 rounded-lg">
             </div>
 
             <button type="submit" id="submitBtn"
-                class="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg transition-all active:scale-95">
-                Confirm & Upload All Records
+                class="w-full py-4 bg-red-700 hover:bg-red-800 text-white font-black uppercase tracking-widest rounded-xl shadow-lg transition-all active:scale-[0.98]">
+                confirm and upload records
             </button>
 
-            <div id="statusMessage" class="hidden p-3 rounded-lg text-sm text-center font-medium"></div>
+            <div id="statusMessage" class="hidden p-3 rounded-lg text-xs text-center font-bold uppercase tracking-wide"></div>
         </form>
+    </div>
 
-        <div class="bg-slate-50 p-4 border-t border-slate-100 text-center">
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">DVSA Audit Compliant System</p>
+    <div id="defectWindow" class="fixed inset-0 bg-slate-100 z-50 hidden flex flex-col">
+        <div class="bg-white border-b border-slate-300 p-4 shadow-sm">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="bg-slate-900 p-2 rounded-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Maintenance Audit Log</h2>
+                        <p id="currentFilterLabel" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">System Live</p>
+                    </div>
+                </div>
+
+                <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button id="toggleActive" onclick="fetchDefects('DEFECTS')" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all bg-white shadow-sm text-red-600">
+                        Active
+                    </button>
+                    <button id="toggleHistory" onclick="fetchDefects('Resolved - Nil Defect')" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all text-slate-500 hover:text-slate-900">
+                        Resolved
+                    </button>
+                </div>
+
+                <button onclick="closeDefectWindow()" class="text-slate-400 hover:text-red-600 transition-colors">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="defectContent" class="flex-1 overflow-y-auto bg-slate-50">
+            <div class="max-w-4xl mx-auto p-4 md:p-8">
+                <div id="defectLoading" class="text-center py-20 hidden">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-700 border-t-transparent"></div>
+                </div>
+                
+                <div id="defectList" class="space-y-4">
+                    </div>
+            </div>
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://mbudwnwxucluwgbkgbfx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1idWR3bnd4dWNsdXdnYmtnYmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDQwMjYsImV4cCI6MjA5MDc4MDAyNn0.xFv-FiQ894vdfJuQYWQyF4WzQXmlnmnKvz_c8nuzl5Q';
-
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -125,89 +163,109 @@
 
         function toggleAsset(type) {
             activeType = type;
-            const vWrap = document.getElementById('vehicleWrapper');
-            const tWrap = document.getElementById('trailerWrapper');
-            const vBtn = document.getElementById('btnVehicle');
-            const tBtn = document.getElementById('btnTrailer');
-
+            const vWrap = document.getElementById('vehicleWrapper'), tWrap = document.getElementById('trailerWrapper');
+            const vBtn = document.getElementById('btnVehicle'), tBtn = document.getElementById('btnTrailer');
             if (type === 'vehicle') {
-                vWrap.classList.remove('hidden');
-                tWrap.classList.add('hidden');
-                vBtn.className = "flex-1 py-2 rounded-lg bg-red-600 text-white font-bold shadow-sm transition-all";
-                tBtn.className = "flex-1 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold border border-slate-200 hover:bg-slate-200 transition-all";
+                vWrap.classList.remove('hidden'); tWrap.classList.add('hidden');
+                vBtn.className = "flex-1 py-3 rounded-lg bg-red-700 text-white font-bold shadow-md transition-all text-sm uppercase";
+                tBtn.className = "flex-1 py-3 rounded-lg bg-slate-200 text-slate-600 font-bold border border-slate-300 hover:bg-slate-300 transition-all text-sm uppercase";
             } else {
-                tWrap.classList.remove('hidden');
-                vWrap.classList.add('hidden');
-                tBtn.className = "flex-1 py-2 rounded-lg bg-red-600 text-white font-bold shadow-sm transition-all";
-                vBtn.className = "flex-1 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold border border-slate-200 hover:bg-slate-200 transition-all";
+                tWrap.classList.remove('hidden'); vWrap.classList.add('hidden');
+                tBtn.className = "flex-1 py-3 rounded-lg bg-red-700 text-white font-bold shadow-md transition-all text-sm uppercase";
+                vBtn.className = "flex-1 py-3 rounded-lg bg-slate-200 text-slate-600 font-bold border border-slate-300 hover:bg-slate-300 transition-all text-sm uppercase";
             }
         }
 
-        const form = document.getElementById('uploadForm');
-        const btn = document.getElementById('submitBtn');
-        const status = document.getElementById('statusMessage');
+        function openDefectWindow(status) {
+            document.getElementById('defectWindow').classList.remove('hidden');
+            fetchDefects(status);
+        }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function closeDefectWindow() {
+            document.getElementById('defectWindow').classList.add('hidden');
+        }
+
+        async function fetchDefects(statusString) {
+            const list = document.getElementById('defectList'), loader = document.getElementById('defectLoading');
+            const label = document.getElementById('currentFilterLabel'), actBtn = document.getElementById('toggleActive'), hisBtn = document.getElementById('toggleHistory');
+
+            list.innerHTML = ""; loader.classList.remove('hidden');
+
+            const isActive = statusString === 'DEFECTS';
+            label.innerText = isActive ? "Priority: High (Action Required)" : "Audit Log: Resolved Items";
+            label.className = isActive ? "text-[10px] font-bold uppercase tracking-widest text-red-600" : "text-[10px] font-bold uppercase tracking-widest text-green-600";
             
-            const files = document.getElementById('fileInput').files;
-            const reg = activeType === 'vehicle' 
-                ? document.getElementById('vehicleSelect').value 
-                : document.getElementById('trailerSelect').value;
-            const type = document.getElementById('docType').value;
-
-            if (!reg) {
-                alert("Please select a registration number.");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = `Uploading to ${reg}...`;
-            btn.classList.replace('bg-red-600', 'bg-slate-400');
-            status.classList.add('hidden');
+            actBtn.className = isActive ? "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-red-600" : "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400";
+            hisBtn.className = !isActive ? "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-green-600" : "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400";
 
             try {
-                const folderName = reg.replace(/\s+/g, ''); 
+                const [v, t] = await Promise.all([
+                    _supabase.from('daily_vehicle_checks').select('*').eq('condition_status', statusString).order('created_at', { ascending: false }),
+                    _supabase.from('daily_trailer_checks').select('*').eq('condition_status', statusString).order('created_at', { ascending: false })
+                ]);
 
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const fileExt = file.name.split('.').pop();
-                    const timestamp = Date.now();
-                    
-                    const fileName = `${folderName}_${timestamp}_${i}.${fileExt}`;
-                    const filePath = `${folderName}/${fileName}`;
+                let all = [...(v.data || []), ...(t.data || [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-                    const { error: uploadError } = await _supabase.storage
-                        .from('maintenance_docs')
-                        .upload(filePath, file);
-
-                    if (uploadError) throw uploadError;
-
-                    const { error: dbError } = await _supabase
-                        .from('maintenance_records')
-                        .insert([{
-                            vehicle_reg: reg, 
-                            document_type: type,
-                            file_path: filePath
-                        }]);
-
-                    if (dbError) throw dbError;
+                if (all.length === 0) {
+                    list.innerHTML = `<div class='text-center py-20 border-2 border-dashed border-slate-300 rounded-2xl'><p class='text-slate-400 font-bold uppercase text-xs tracking-widest'>No records match current filter</p></div>`;
+                } else {
+                    all.forEach(item => {
+                        const date = new Date(item.created_at).toLocaleDateString('en-GB');
+                        const id = item.registration || item.trailer_number || '---';
+                        const div = document.createElement('div');
+                        
+                        div.className = "flex items-stretch bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow";
+                        div.innerHTML = `
+                            <div class="w-2 ${isActive ? 'bg-red-600' : 'bg-green-500'}"></div>
+                            <div class="flex-1 p-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                                <div>
+                                    <span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Asset ID</span>
+                                    <span class="text-sm font-black text-slate-900 tracking-wider">${id}</span>
+                                </div>
+                                <div class="md:col-span-2 border-l border-slate-100 pl-4">
+                                    <span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Defect Summary</span>
+                                    <span class="text-xs font-bold text-slate-700 italic">"${item.defect_details || 'No detail'}"</span>
+                                </div>
+                                <div class="text-right flex flex-col items-end border-l border-slate-100 pl-4">
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reported By</span>
+                                    <span class="text-xs font-bold text-slate-900">${item.driver_name || 'System'}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 mt-1">${date}</span>
+                                </div>
+                            </div>
+                            <div class="p-4 flex items-center bg-slate-50 border-l border-slate-100">
+                                <div class="h-2 w-2 rounded-full ${isActive ? 'bg-red-600 animate-pulse' : 'bg-green-500'}"></div>
+                            </div>
+                        `;
+                        list.appendChild(div);
+                    });
                 }
-
-                status.innerText = `✓ ${files.length} File(s) Uploaded Successfully!`;
-                status.className = "p-3 rounded-lg text-sm text-center bg-green-100 text-green-700 block";
-                form.reset();
-                toggleAsset('vehicle'); 
-
             } catch (err) {
-                console.error(err);
-                status.innerText = "Error: " + err.message;
-                status.className = "p-3 rounded-lg text-sm text-center bg-red-100 text-red-700 block";
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Confirm & Upload All Records';
-                btn.classList.replace('bg-slate-400', 'bg-red-600');
-            }
+                list.innerHTML = `<p class='text-red-500 font-bold'>Audit Error: ${err.message}</p>`;
+            } finally { loader.classList.add('hidden'); }
+        }
+
+        // UPLOAD LOGIC
+        const form = document.getElementById('uploadForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn'), msg = document.getElementById('statusMessage');
+            const files = document.getElementById('fileInput').files;
+            const reg = activeType === 'vehicle' ? document.getElementById('vehicleSelect').value : document.getElementById('trailerSelect').value;
+            if (!reg) return alert("Select Asset");
+
+            btn.disabled = true; btn.innerText = "Synchronizing...";
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const f = files[i];
+                    const path = `${activeType === 'vehicle' ? 'Vehicles' : 'Trailers'}/${reg.replace(/\s+/g, '')}/${document.getElementById('docType').value.replace(/\s+/g, '')}/${Date.now()}_${i}.${f.name.split('.').pop()}`;
+                    await _supabase.storage.from('maintenance_docs').upload(path, f);
+                    await _supabase.from('maintenance_records').insert([{ vehicle_reg: reg, document_type: document.getElementById('docType').value, file_path: path }]);
+                }
+                msg.innerText = "Cloud Sync Complete"; msg.className = "p-3 rounded-lg text-xs text-center bg-slate-900 text-white block mt-4";
+                form.reset();
+            } catch (err) {
+                msg.innerText = err.message; msg.className = "p-3 rounded-lg text-xs text-center bg-red-100 text-red-700 block mt-4";
+            } finally { btn.disabled = false; btn.innerText = "confirm and upload records"; }
         });
     </script>
 </body>
