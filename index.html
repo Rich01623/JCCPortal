@@ -3,16 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frost Connect</title>
+    <title>Frost Connect | Secure Access</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div id="mainCard" class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-300">
-        <div class="bg-red-700 p-6 text-white text-center border-b-4 border-red-800">
-            <h1 class="text-2xl font-black tracking-tighter uppercase">Frost Connect</h1>
-            <p class="text-red-100 text-[10px] uppercase font-bold tracking-[0.2em] opacity-80">Fleet Maintenance Management</p>
+    <!-- LOGIN SCREEN -->
+    <div id="loginCard" class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-300">
+        <div class="bg-slate-900 p-8 text-white text-center">
+            <h1 class="text-2xl font-black tracking-tighter uppercase">Authorized Access</h1>
+            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest mt-2">Frost Connect Fleet Portal</p>
+        </div>
+        <form id="loginForm" class="p-8 space-y-4">
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Email Address</label>
+                <input type="email" id="loginEmail" required class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-red-600 text-sm">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Password</label>
+                <input type="password" id="loginPassword" required class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-red-600 text-sm">
+            </div>
+            <button type="submit" id="loginBtn" class="w-full py-4 bg-red-700 hover:bg-red-800 text-white font-black uppercase tracking-widest rounded-xl transition-all">
+                Sign In
+            </button>
+            <p id="loginError" class="text-red-600 text-[10px] font-bold uppercase text-center hidden"></p>
+        </form>
+    </div>
+
+    <!-- MAIN APPLICATION (Hidden by default) -->
+    <div id="mainCard" class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-300 hidden">
+        <div class="bg-red-700 p-6 text-white text-center border-b-4 border-red-800 flex justify-between items-center">
+            <div class="text-left">
+                <h1 class="text-2xl font-black tracking-tighter uppercase">Frost Connect</h1>
+                <p class="text-red-100 text-[10px] uppercase font-bold tracking-[0.2em] opacity-80">Fleet Maintenance</p>
+            </div>
+            <button onclick="handleLogout()" class="bg-red-900 hover:bg-black p-2 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </button>
         </div>
 
         <form id="uploadForm" class="p-6 space-y-5">
@@ -113,6 +141,7 @@
         </form>
     </div>
 
+    <!-- DEFECT WINDOW (Unchanged) -->
     <div id="defectWindow" class="fixed inset-0 bg-slate-100 z-50 hidden flex flex-col">
         <div class="bg-white border-b border-slate-300 p-4 shadow-sm">
             <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -125,31 +154,17 @@
                         <p id="currentFilterLabel" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">System Live</p>
                     </div>
                 </div>
-
                 <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-                    <button id="toggleActive" onclick="fetchDefects('DEFECTS')" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all bg-white shadow-sm text-red-600">
-                        Active
-                    </button>
-                    <button id="toggleHistory" onclick="fetchDefects('Resolved - Nil Defect')" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all text-slate-500 hover:text-slate-900">
-                        Resolved
-                    </button>
+                    <button id="toggleActive" onclick="fetchDefects('DEFECTS')" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all bg-white shadow-sm text-red-600">Active</button>
+                    <button id="toggleHistory" onclick="fetchDefects('Resolved - Nil Defect')" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all text-slate-500 hover:text-slate-900">Resolved</button>
                 </div>
-
                 <button onclick="closeDefectWindow()" class="text-slate-400 hover:text-red-600 transition-colors">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
         </div>
-
         <div id="defectContent" class="flex-1 overflow-y-auto bg-slate-50">
-            <div class="max-w-4xl mx-auto p-4 md:p-8">
-                <div id="defectLoading" class="text-center py-20 hidden">
-                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-700 border-t-transparent"></div>
-                </div>
-                
-                <div id="defectList" class="space-y-4">
-                    </div>
-            </div>
+            <div class="max-w-4xl mx-auto p-4 md:p-8"><div id="defectLoading" class="text-center py-20 hidden"><div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-700 border-t-transparent"></div></div><div id="defectList" class="space-y-4"></div></div>
         </div>
     </div>
 
@@ -159,8 +174,48 @@
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let activeType = 'vehicle';
+        // --- AUTHENTICATION LOGIC ---
+        const loginCard = document.getElementById('loginCard');
+        const mainCard = document.getElementById('mainCard');
 
+        // Check if user is already logged in
+        window.onload = async () => {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) showApp();
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const err = document.getElementById('loginError');
+            btn.innerText = "Authenticating...";
+            
+            const { error } = await _supabase.auth.signInWithPassword({
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value
+            });
+
+            if (error) {
+                err.innerText = error.message;
+                err.classList.remove('hidden');
+                btn.innerText = "Sign In";
+            } else {
+                showApp();
+            }
+        });
+
+        async function handleLogout() {
+            await _supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        function showApp() {
+            loginCard.classList.add('hidden');
+            mainCard.classList.remove('hidden');
+        }
+
+        // --- EXISTING APP LOGIC ---
+        let activeType = 'vehicle';
         function toggleAsset(type) {
             activeType = type;
             const vWrap = document.getElementById('vehicleWrapper'), tWrap = document.getElementById('trailerWrapper');
@@ -187,25 +242,17 @@
 
         async function fetchDefects(statusString) {
             const list = document.getElementById('defectList'), loader = document.getElementById('defectLoading');
-            const label = document.getElementById('currentFilterLabel'), actBtn = document.getElementById('toggleActive'), hisBtn = document.getElementById('toggleHistory');
-
+            const label = document.getElementById('currentFilterLabel');
             list.innerHTML = ""; loader.classList.remove('hidden');
-
             const isActive = statusString === 'DEFECTS';
             label.innerText = isActive ? "Priority: High (Action Required)" : "Audit Log: Resolved Items";
-            label.className = isActive ? "text-[10px] font-bold uppercase tracking-widest text-red-600" : "text-[10px] font-bold uppercase tracking-widest text-green-600";
-            
-            actBtn.className = isActive ? "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-red-600" : "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400";
-            hisBtn.className = !isActive ? "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-green-600" : "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400";
 
             try {
                 const [v, t] = await Promise.all([
                     _supabase.from('daily_vehicle_checks').select('*').eq('condition_status', statusString).order('created_at', { ascending: false }),
                     _supabase.from('daily_trailer_checks').select('*').eq('condition_status', statusString).order('created_at', { ascending: false })
                 ]);
-
                 let all = [...(v.data || []), ...(t.data || [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
                 if (all.length === 0) {
                     list.innerHTML = `<div class='text-center py-20 border-2 border-dashed border-slate-300 rounded-2xl'><p class='text-slate-400 font-bold uppercase text-xs tracking-widest'>No records match current filter</p></div>`;
                 } else {
@@ -213,38 +260,21 @@
                         const date = new Date(item.created_at).toLocaleDateString('en-GB');
                         const id = item.registration || item.trailer_number || '---';
                         const div = document.createElement('div');
-                        
                         div.className = "flex items-stretch bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow";
                         div.innerHTML = `
                             <div class="w-2 ${isActive ? 'bg-red-600' : 'bg-green-500'}"></div>
                             <div class="flex-1 p-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                                <div>
-                                    <span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Asset ID</span>
-                                    <span class="text-sm font-black text-slate-900 tracking-wider">${id}</span>
-                                </div>
-                                <div class="md:col-span-2 border-l border-slate-100 pl-4">
-                                    <span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Defect Summary</span>
-                                    <span class="text-xs font-bold text-slate-700 italic">"${item.defect_details || 'No detail'}"</span>
-                                </div>
-                                <div class="text-right flex flex-col items-end border-l border-slate-100 pl-4">
-                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reported By</span>
-                                    <span class="text-xs font-bold text-slate-900">${item.driver_name || 'System'}</span>
-                                    <span class="text-[10px] font-bold text-slate-400 mt-1">${date}</span>
-                                </div>
-                            </div>
-                            <div class="p-4 flex items-center bg-slate-50 border-l border-slate-100">
-                                <div class="h-2 w-2 rounded-full ${isActive ? 'bg-red-600 animate-pulse' : 'bg-green-500'}"></div>
-                            </div>
-                        `;
+                                <div><span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Asset ID</span><span class="text-sm font-black text-slate-900 tracking-wider">${id}</span></div>
+                                <div class="md:col-span-2 border-l border-slate-100 pl-4"><span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Defect Summary</span><span class="text-xs font-bold text-slate-700 italic">"${item.defect_details || 'No detail'}"</span></div>
+                                <div class="text-right flex flex-col items-end border-l border-slate-100 pl-4"><span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reported By</span><span class="text-xs font-bold text-slate-900">${item.driver_name || 'System'}</span><span class="text-[10px] font-bold text-slate-400 mt-1">${date}</span></div>
+                            </div>`;
                         list.appendChild(div);
                     });
                 }
-            } catch (err) {
-                list.innerHTML = `<p class='text-red-500 font-bold'>Audit Error: ${err.message}</p>`;
-            } finally { loader.classList.add('hidden'); }
+            } catch (err) { list.innerHTML = `<p class='text-red-500 font-bold'>Audit Error: ${err.message}</p>`; }
+            finally { loader.classList.add('hidden'); }
         }
 
-        // UPLOAD LOGIC
         const form = document.getElementById('uploadForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
