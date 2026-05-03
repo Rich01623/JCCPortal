@@ -56,7 +56,6 @@
                         Pull Defect Reports
                     </button>
                     
-                    <!-- NEW BUTTON LINKED TO EXTERNAL SITE -->
                     <a href="https://rich01623.github.io/Maintenance/" target="_blank" class="w-full py-2.5 rounded-lg border border-slate-900 bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-sm">
                         View Fleet Status
                     </a>
@@ -130,6 +129,7 @@
                     <option>MOT Certificate</option>
                     <option>Repair Invoice</option>
                     <option>Defect Sheet</option>
+                    <option>Brake Test</option> <!-- NEW OPTION ADDED HERE -->
                 </select>
             </div>
 
@@ -284,21 +284,63 @@
             const btn = document.getElementById('submitBtn'), msg = document.getElementById('statusMessage');
             const files = document.getElementById('fileInput').files;
             const reg = activeType === 'vehicle' ? document.getElementById('vehicleSelect').value : document.getElementById('trailerSelect').value;
+            const docTypeVal = document.getElementById('docType').value;
+            
             if (!reg) return alert("Select Asset");
 
             btn.disabled = true; btn.innerText = "Synchronizing...";
+            
             try {
+                // 1. Get the current logged-in user to append to filename
+                const { data: { user } } = await _supabase.auth.getUser();
+                let uploaderName = "UnknownUser";
+                if (user) {
+                    if (user.user_metadata && user.user_metadata.display_name) {
+                        uploaderName = user.user_metadata.display_name.replace(/[^a-zA-Z0-9]/g, ''); // strip spaces/special chars
+                    } else if (user.email) {
+                        uploaderName = user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+                    }
+                }
+
+                // 2. Generate strict UK Date/Time format (DD-MM-YYYY_HH-MM-SS)
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+                const timeStr = now.toLocaleTimeString('en-GB', { hour12: false }).replace(/:/g, '-');
+                const ukTimestamp = `${dateStr}_${timeStr}`;
+
+                // 3. Format Folder labels
+                const categoryFolder = activeType === 'vehicle' ? 'Vehicles' : 'Trailers';
+                const assetFolder = reg.replace(/\s+/g, '');
+                const subFolder = docTypeVal.replace(/\s+/g, '');
+
                 for (let i = 0; i < files.length; i++) {
                     const f = files[i];
-                    const path = `${activeType === 'vehicle' ? 'Vehicles' : 'Trailers'}/${reg.replace(/\s+/g, '')}/${document.getElementById('docType').value.replace(/\s+/g, '')}/${Date.now()}_${i}.${f.name.split('.').pop()}`;
+                    const ext = f.name.split('.').pop();
+                    
+                    // 4. Build the new consolidated filename
+                    const newFileName = `${categoryFolder}_${assetFolder}_${subFolder}_${uploaderName}_${ukTimestamp}_${i}.${ext}`;
+                    
+                    // 5. Hardcode upload path directly into AUTHORISE folder
+                    const path = `AUTHORISE/${newFileName}`;
+                    
                     await _supabase.storage.from('maintenance_docs').upload(path, f);
-                    await _supabase.from('maintenance_records').insert([{ vehicle_reg: reg, document_type: document.getElementById('docType').value, file_path: path }]);
+                    
+                    // 6. Push the new AUTHORISE path to the DB
+                    await _supabase.from('maintenance_records').insert([{ 
+                        vehicle_reg: reg, 
+                        document_type: docTypeVal, 
+                        file_path: path 
+                    }]);
                 }
+                
                 msg.innerText = "Cloud Sync Complete"; msg.className = "p-3 rounded-lg text-xs text-center bg-slate-900 text-white block mt-4";
                 form.reset();
             } catch (err) {
                 msg.innerText = err.message; msg.className = "p-3 rounded-lg text-xs text-center bg-red-100 text-red-700 block mt-4";
-            } finally { btn.disabled = false; btn.innerText = "confirm and upload records"; }
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = "confirm and upload records"; 
+            }
         });
     </script>
 </body>
