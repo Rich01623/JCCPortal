@@ -129,7 +129,9 @@
                     <option>MOT Certificate</option>
                     <option>Repair Invoice</option>
                     <option>Defect Sheet</option>
-                    <option>Brake Test</option> <!-- NEW OPTION ADDED HERE -->
+                    <option>Brake Test</option>
+                    <option>Tachograph Calibration</option>
+                    <option>LOLER Certificates</option>
                 </select>
             </div>
 
@@ -278,6 +280,7 @@
             finally { loader.classList.add('hidden'); }
         }
 
+        // --- UPDATED UPLOAD LOGIC ---
         const form = document.getElementById('uploadForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
