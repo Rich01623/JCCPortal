@@ -65,60 +65,14 @@
             <div id="vehicleWrapper">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Select Unit</label>
                 <select id="vehicleSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 outline-none text-sm font-medium">
-                    <option value="">-- Select Vehicle Registration --</option>
-                    <option value="BX15 JSU">BX15 JSU</option>
-                    <option value="DK69 ZHM">DK69 ZHM</option>
-                    <option value="FD65 VZA">FD65 VZA</option>
-                    <option value="FJ17 OPT">FJ17 OPT</option>
-                    <option value="FJ69 WMC">FJ69 WMC</option>
-                    <option value="FJ69 WML">FJ69 WML</option>
-                    <option value="FN21 HLZ">FN21 HLZ</option>
-                    <option value="FR72 FTS">FR72 FTS</option>
-                    <option value="FS72 FTS">FS72 FTS</option>
-                    <option value="FT72 FTS">FT72 FTS</option>
-                    <option value="HS19 YNH">HS19 YNH</option>
-                    <option value="KU70 XNR">KU70 XNR</option>
-                    <option value="KU70 XNS">KU70 XNS</option>
-                    <option value="KU70 XNT">KU70 XNT</option>
-                    <option value="KU70 XNV">KU70 XNV</option>
-                    <option value="KU70 XNW">KU70 XNW</option>
-                    <option value="KU70 XNX">KU70 XNX</option>
+                    <option value="">Loading vehicles...</option>
                 </select>
             </div>
 
             <div id="trailerWrapper" class="hidden">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Select Asset</label>
                 <select id="trailerSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 outline-none text-sm font-medium">
-                    <option value="">-- Select Trailer Number --</option>
-                    <option value="FTSTR01">FTSTR01</option>
-                    <option value="FTSTR02">FTSTR02</option>
-                    <option value="FTSTR03">FTSTR03</option>
-                    <option value="FTSTR04">FTSTR04</option>
-                    <option value="FTSTR05">FTSTR05</option>
-                    <option value="FTSTR09">FTSTR09</option>
-                    <option value="FTSTR11">FTSTR11</option>
-                    <option value="FTSTR12">FTSTR12</option>
-                    <option value="FTSTR17">FTSTR17</option>
-                    <option value="FTSTR21">FTSTR21</option>
-                    <option value="FTSTR22">FTSTR22</option>
-                    <option value="FTSTR23">FTSTR23</option>
-                    <option value="FTSTR24">FTSTR24</option>
-                    <option value="FTSTR25">FTSTR25</option>
-                    <option value="FTSTR26">FTSTR26</option>
-                    <option value="FTSTR27">FTSTR27</option>
-                    <option value="FTSTR28">FTSTR28</option>
-                    <option value="FTSTR30">FTSTR30</option>
-                    <option value="FTSTR31">FTSTR31</option>
-                    <option value="FTSTR41">FTSTR41</option>
-                    <option value="FTSTR42">FTSTR42</option>
-                    <option value="FTSTR44">FTSTR44</option>
-                    <option value="FTSTR45">FTSTR45</option>
-                    <option value="FTSTR46">FTSTR46</option>
-                    <option value="FTSTR60">FTSTR60</option>
-                    <option value="FTSTR61">FTSTR61</option>
-                    <option value="FTSTR62">FTSTR62</option>
-                    <option value="FTSTR63">FTSTR63</option>
-                    <option value="FTSTR64">FTSTR64</option>
+                    <option value="">Loading trailers...</option>
                 </select>
             </div>
 
@@ -132,7 +86,7 @@
                     <option>Brake Test</option>
                     <option>Tachograph Calibration</option>
                     <option>LOLER Certificates</option>
-                    <option>Road Tax</option> <!-- NEW OPTION ADDED HERE -->
+                    <option>Road Tax</option>
                 </select>
             </div>
 
@@ -186,11 +140,18 @@
 
         const loginCard = document.getElementById('loginCard');
         const mainCard = document.getElementById('mainCard');
+        const vehicleSelect = document.getElementById('vehicleSelect');
+        const trailerSelect = document.getElementById('trailerSelect');
+        let fleetRealtimeStarted = false;
 
         window.onload = async () => {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) showApp();
         };
+
+        window.addEventListener('focus', () => {
+            if (!mainCard.classList.contains('hidden')) loadFleetUnits();
+        });
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -225,6 +186,88 @@
             if (user && user.user_metadata && user.user_metadata.display_name) {
                 document.getElementById('userGreeting').innerText = `Welcome, ${user.user_metadata.display_name}`;
             }
+
+            await loadFleetUnits();
+            startFleetRealtime();
+        }
+
+        function normalizeUnits(rows) {
+            const units = (rows || [])
+                .map(row => (row.registration_number || '').trim())
+                .filter(Boolean);
+            return [...new Set(units)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        }
+
+        function populateUnitSelect(selectEl, units, placeholder, emptyText) {
+            const previousValue = selectEl.value;
+            selectEl.innerHTML = '';
+
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = units.length ? placeholder : emptyText;
+            selectEl.appendChild(placeholderOption);
+
+            units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit;
+                option.textContent = unit;
+                selectEl.appendChild(option);
+            });
+
+            if (previousValue && units.includes(previousValue)) {
+                selectEl.value = previousValue;
+            }
+        }
+
+        async function loadFleetUnits() {
+            const currentVehicle = vehicleSelect.value;
+            const currentTrailer = trailerSelect.value;
+
+            vehicleSelect.innerHTML = '<option value="">Loading vehicles...</option>';
+            trailerSelect.innerHTML = '<option value="">Loading trailers...</option>';
+
+            try {
+                const [vehicleResult, trailerResult] = await Promise.all([
+                    _supabase.from('vehicles').select('registration_number').order('registration_number', { ascending: true }),
+                    _supabase.from('trailers').select('registration_number').order('registration_number', { ascending: true })
+                ]);
+
+                if (vehicleResult.error) throw vehicleResult.error;
+                if (trailerResult.error) throw trailerResult.error;
+
+                const vehicles = normalizeUnits(vehicleResult.data);
+                const trailers = normalizeUnits(trailerResult.data);
+
+                populateUnitSelect(vehicleSelect, vehicles, '-- Select Vehicle Registration --', 'No vehicles found');
+                populateUnitSelect(trailerSelect, trailers, '-- Select Trailer Number --', 'No trailers found');
+
+                if (currentVehicle && vehicles.includes(currentVehicle)) vehicleSelect.value = currentVehicle;
+                if (currentTrailer && trailers.includes(currentTrailer)) trailerSelect.value = currentTrailer;
+            } catch (err) {
+                console.error('Fleet unit load failed:', err);
+                vehicleSelect.innerHTML = '<option value="">Unable to load vehicles</option>';
+                trailerSelect.innerHTML = '<option value="">Unable to load trailers</option>';
+                showStatus(`Unit list error: ${err.message}`, true);
+            }
+        }
+
+        function startFleetRealtime() {
+            if (fleetRealtimeStarted) return;
+            fleetRealtimeStarted = true;
+
+            _supabase
+                .channel('frost-connect-fleet-units')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'vehicles' }, loadFleetUnits)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'trailers' }, loadFleetUnits)
+                .subscribe();
+        }
+
+        function showStatus(text, isError = false) {
+            const msg = document.getElementById('statusMessage');
+            msg.innerText = text;
+            msg.className = isError
+                ? "p-3 rounded-lg text-xs text-center bg-red-100 text-red-700 block mt-4"
+                : "p-3 rounded-lg text-xs text-center bg-slate-900 text-white block mt-4";
         }
 
         let activeType = 'vehicle';
@@ -281,13 +324,12 @@
             finally { loader.classList.add('hidden'); }
         }
 
-        // --- UPDATED UPLOAD LOGIC ---
         const form = document.getElementById('uploadForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn'), msg = document.getElementById('statusMessage');
+            const btn = document.getElementById('submitBtn');
             const files = document.getElementById('fileInput').files;
-            const reg = activeType === 'vehicle' ? document.getElementById('vehicleSelect').value : document.getElementById('trailerSelect').value;
+            const reg = activeType === 'vehicle' ? vehicleSelect.value : trailerSelect.value;
             const docTypeVal = document.getElementById('docType').value;
             
             if (!reg) return alert("Select Asset");
@@ -295,24 +337,21 @@
             btn.disabled = true; btn.innerText = "Synchronizing...";
             
             try {
-                // 1. Get the current logged-in user to append to filename
                 const { data: { user } } = await _supabase.auth.getUser();
                 let uploaderName = "UnknownUser";
                 if (user) {
                     if (user.user_metadata && user.user_metadata.display_name) {
-                        uploaderName = user.user_metadata.display_name.replace(/[^a-zA-Z0-9]/g, ''); // strip spaces/special chars
+                        uploaderName = user.user_metadata.display_name.replace(/[^a-zA-Z0-9]/g, '');
                     } else if (user.email) {
                         uploaderName = user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
                     }
                 }
 
-                // 2. Generate strict UK Date/Time format (DD-MM-YYYY_HH-MM-SS)
                 const now = new Date();
                 const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
                 const timeStr = now.toLocaleTimeString('en-GB', { hour12: false }).replace(/:/g, '-');
                 const ukTimestamp = `${dateStr}_${timeStr}`;
 
-                // 3. Format Folder labels
                 const categoryFolder = activeType === 'vehicle' ? 'Vehicles' : 'Trailers';
                 const assetFolder = reg.replace(/\s+/g, '');
                 const subFolder = docTypeVal.replace(/\s+/g, '');
@@ -320,16 +359,10 @@
                 for (let i = 0; i < files.length; i++) {
                     const f = files[i];
                     const ext = f.name.split('.').pop();
-                    
-                    // 4. Build the new consolidated filename
                     const newFileName = `${categoryFolder}_${assetFolder}_${subFolder}_${uploaderName}_${ukTimestamp}_${i}.${ext}`;
-                    
-                    // 5. Hardcode upload path directly into AUTHORISE folder
                     const path = `AUTHORISE/${newFileName}`;
                     
                     await _supabase.storage.from('maintenance_docs').upload(path, f);
-                    
-                    // 6. Push the new AUTHORISE path to the DB
                     await _supabase.from('maintenance_records').insert([{ 
                         vehicle_reg: reg, 
                         document_type: docTypeVal, 
@@ -337,10 +370,12 @@
                     }]);
                 }
                 
-                msg.innerText = "Cloud Sync Complete"; msg.className = "p-3 rounded-lg text-xs text-center bg-slate-900 text-white block mt-4";
+                showStatus("Cloud Sync Complete");
                 form.reset();
+                toggleAsset(activeType);
+                await loadFleetUnits();
             } catch (err) {
-                msg.innerText = err.message; msg.className = "p-3 rounded-lg text-xs text-center bg-red-100 text-red-700 block mt-4";
+                showStatus(err.message, true);
             } finally { 
                 btn.disabled = false; 
                 btn.innerText = "confirm and upload records"; 
